@@ -22,7 +22,7 @@ export default async function DashboardLayout({
   }
 
   // Verify user exists in DB to avoid foreign key constraint errors
-  const user = await db.select().from(users).where(eq(users.id, session.userId)).get();
+  const [user] = await db.select().from(users).where(eq(users.id, session.userId));
 
   if (!user) {
     // If session exists but user is gone (e.g. DB reset), show a sync UI instead of redirecting to avoid loops

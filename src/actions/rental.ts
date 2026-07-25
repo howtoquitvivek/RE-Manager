@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 // --- TENANTS ---
 export async function getTenantsAction(organizationId: string) {
   try {
-    const list = await db.select().from(tenants).where(eq(tenants.organizationId, organizationId)).all();
+    const list = await db.select().from(tenants).where(eq(tenants.organizationId, organizationId));
     
     // For each tenant, find their lease to determine unit/rent/deposit details
     const tenantsWithLeases = await Promise.all(
@@ -17,7 +17,7 @@ export async function getTenantsAction(organizationId: string) {
           .from(leases)
           .where(eq(leases.tenantId, t.id))
           .limit(1)
-          .get();
+          .then(res => res ? res[0] : undefined);
 
         let unitName = "No Unit Assigned";
         let rentAmount = "N/A";
@@ -31,7 +31,7 @@ export async function getTenantsAction(organizationId: string) {
             .from(properties)
             .where(eq(properties.id, lease.propertyId))
             .limit(1)
-            .get();
+            .then(res => res ? res[0] : undefined);
           
           if (prop) {
             unitName = prop.name;
@@ -91,18 +91,18 @@ export async function deleteTenantAction(orgSlug: string, id: string) {
 export async function getLeasesAction(organizationId: string) {
   try {
     // Find all leases where properties belong to this organization
-    const orgProperties = await db.select().from(properties).where(eq(properties.organizationId, organizationId)).all();
+    const orgProperties = await db.select().from(properties).where(eq(properties.organizationId, organizationId));
     const propIds = orgProperties.map(p => p.id);
     
     if (propIds.length === 0) return { success: true, leases: [] };
     
-    const list = await db.select().from(leases).all();
+    const list = await db.select().from(leases);
     const filteredList = list.filter(l => propIds.includes(l.propertyId));
 
     const enrichedLeases = await Promise.all(
       filteredList.map(async (l) => {
-        const tenant = await db.select().from(tenants).where(eq(tenants.id, l.tenantId)).limit(1).get();
-        const prop = await db.select().from(properties).where(eq(properties.id, l.propertyId)).limit(1).get();
+        const tenant = await db.select().from(tenants).where(eq(tenants.id, l.tenantId)).limit(1).then(res => res ? res[0] : undefined);
+        const prop = await db.select().from(properties).where(eq(properties.id, l.propertyId)).limit(1).then(res => res ? res[0] : undefined);
 
         return {
           id: l.id,
@@ -161,7 +161,7 @@ export async function deleteLeaseAction(orgSlug: string, id: string) {
 // --- RENT INVOICES ---
 export async function getRentInvoicesAction(organizationId: string) {
   try {
-    const list = await db.select().from(rentInvoices).where(eq(rentInvoices.organizationId, organizationId)).all();
+    const list = await db.select().from(rentInvoices).where(eq(rentInvoices.organizationId, organizationId));
     return { success: true, invoices: list };
   } catch (error) {
     console.error("Error fetching rent invoices:", error);
@@ -205,7 +205,7 @@ export async function updateRentInvoiceStatusAction(orgSlug: string, id: string,
 // --- MAINTENANCE TICKETS ---
 export async function getMaintenanceTicketsAction(organizationId: string) {
   try {
-    const list = await db.select().from(maintenanceTickets).where(eq(maintenanceTickets.organizationId, organizationId)).all();
+    const list = await db.select().from(maintenanceTickets).where(eq(maintenanceTickets.organizationId, organizationId));
     return { success: true, tickets: list };
   } catch (error) {
     console.error("Error fetching maintenance tickets:", error);

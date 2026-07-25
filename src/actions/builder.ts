@@ -9,12 +9,12 @@ import { revalidatePath } from "next/cache";
 export async function getTowersAction(organizationId: string) {
   try {
     // Find all projects in this organization
-    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId)).all();
+    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId));
     const projIds = orgProjects.map(p => p.id);
     
     if (projIds.length === 0) return { success: true, towers: [] };
     
-    const list = await db.select().from(towers).all();
+    const list = await db.select().from(towers);
     const filteredList = list.filter(t => projIds.includes(t.projectId));
 
     const enrichedTowers = await Promise.all(
@@ -22,14 +22,14 @@ export async function getTowersAction(organizationId: string) {
         const proj = orgProjects.find(p => p.id === t.projectId);
         
         // Count apartments in this tower
-        const apts = await db.select().from(apartments).where(eq(apartments.towerId, t.id)).all();
+        const apts = await db.select().from(apartments).where(eq(apartments.towerId, t.id));
         
         // Find construction progress for this tower or default to project construction
         const progressLog = await db.select()
           .from(construction)
           .where(eq(construction.projectId, t.projectId))
           .limit(1)
-          .get();
+          .then(res => res ? res[0] : undefined);
 
         return {
           id: t.id,
@@ -80,18 +80,18 @@ export async function deleteTowerAction(orgSlug: string, id: string) {
 // --- APARTMENTS ---
 export async function getApartmentsAction(organizationId: string) {
   try {
-    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId)).all();
+    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId));
     const projIds = orgProjects.map(p => p.id);
     
     if (projIds.length === 0) return { success: true, apartments: [] };
     
-    const allTowers = await db.select().from(towers).all();
+    const allTowers = await db.select().from(towers);
     const filteredTowers = allTowers.filter(t => projIds.includes(t.projectId));
     const towerIds = filteredTowers.map(t => t.id);
     
     if (towerIds.length === 0) return { success: true, apartments: [] };
 
-    const list = await db.select().from(apartments).all();
+    const list = await db.select().from(apartments);
     const filteredList = list.filter(a => towerIds.includes(a.towerId));
 
     const enrichedApartments = filteredList.map(a => {
@@ -156,7 +156,7 @@ export async function getPlotsAction(organizationId: string) {
           eq(properties.propertyType, "plot")
         )
       )
-      .all();
+      ;
 
     const formattedPlots = list.map(p => ({
       id: p.id,
@@ -210,12 +210,12 @@ export async function deletePlotAction(orgSlug: string, id: string) {
 // --- CONSTRUCTION MILESTONES ---
 export async function getConstructionMilestonesAction(organizationId: string) {
   try {
-    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId)).all();
+    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId));
     const projIds = orgProjects.map(p => p.id);
     
     if (projIds.length === 0) return { success: true, milestones: [] };
 
-    const list = await db.select().from(construction).all();
+    const list = await db.select().from(construction);
     const filteredList = list.filter(c => projIds.includes(c.projectId));
 
     const enrichedMilestones = filteredList.map(c => {
@@ -259,12 +259,12 @@ export async function createConstructionMilestoneAction(
 // --- APPROVALS ---
 export async function getApprovalsAction(organizationId: string) {
   try {
-    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId)).all();
+    const orgProjects = await db.select().from(projects).where(eq(projects.organizationId, organizationId));
     const projIds = orgProjects.map(p => p.id);
     
     if (projIds.length === 0) return { success: true, approvals: [] };
 
-    const list = await db.select().from(approvals).all();
+    const list = await db.select().from(approvals);
     const filteredList = list.filter(a => projIds.includes(a.projectId));
 
     const enrichedApprovals = filteredList.map(a => {
