@@ -73,14 +73,14 @@ export async function createOrganization(name: string, userId: string, workspace
 
   if (existing) return existing.organizations;
 
-  return db.transaction((tx) => {
-    const newOrg = tx.insert(organizations).values({
+  return await db.transaction(async (tx) => {
+    const newOrg = await tx.insert(organizations).values({
       name,
       slug,
       workspaceType,
     }).returning().get();
 
-    tx.insert(memberships).values({
+    await tx.insert(memberships).values({
       userId,
       organizationId: newOrg.id,
       role: "OWNER",
