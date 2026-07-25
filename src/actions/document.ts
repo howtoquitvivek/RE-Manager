@@ -3,8 +3,7 @@
 import { createDocument, deleteDocument, generateDocumentSummary } from "@/services/document";
 import { processPdfSummary } from "@/services/ai.service";
 import { revalidatePath } from "next/cache";
-import { join } from "path";
-import { writeFile, mkdir } from "fs/promises";
+import { uploadFile, deleteFile } from "@/lib/storage";
 
 export async function uploadDocumentAction(orgSlug: string, propertyId: string, formData: FormData) {
   const file = formData.get("file") as File;
@@ -14,18 +13,11 @@ export async function uploadDocumentAction(orgSlug: string, propertyId: string, 
   const fileType = file.type;
   
   try {
+    // Upload using storage helper (handles local vs. Vercel Blob)
+    const fileUrl = await uploadFile(file, propertyId);
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // Save locally
-    const uploadDir = join(process.cwd(), "public", "uploads", propertyId);
-    await mkdir(uploadDir, { recursive: true });
-    
-    const fileName = `${Date.now()}-${file.name.replace(/\\s+/g, "_")}`;
-    const filePath = join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-
-    const fileUrl = `/uploads/${propertyId}/${fileName}`;
 
     // Create record first
     const newDoc = await createDocument({
@@ -57,7 +49,11 @@ export async function uploadDocumentAction(orgSlug: string, propertyId: string, 
 
 export async function deleteDocumentAction(orgSlug: string, propertyId: string, id: string) {
   try {
-    await deleteDocument(id);
+    const deletedDocs = await deleteDocument(id);
+    if (deletedDocs && deletedDocs.length > 0) {
+      const deletedDoc = deletedDocs[0];
+      await deleteFile(deletedDoc.filePath);
+    }
     revalidatePath(`/dashboard/${orgSlug}/properties/${propertyId}`);
     return { success: true };
   } catch (error) {
