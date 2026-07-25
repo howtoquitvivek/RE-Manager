@@ -10,7 +10,7 @@ export const getPropertyDocuments = cache(async (propertyId: string) => {
   return await db.select()
     .from(documents)
     .where(eq(documents.propertyId, propertyId))
-    .all();
+    ;
 });
 
 export async function createDocument(data: {

@@ -10,7 +10,7 @@ export async function syncFirebaseUserToDb(firebaseUser: {
   workspaceType?: string;
   subscriptionPlan?: string;
 }) {
-  let user = await db.select().from(users).where(eq(users.email, firebaseUser.email)).get();
+  let user = await db.select().from(users).where(eq(users.email, firebaseUser.email)).then(res => res ? res[0] : undefined);
 
   if (!user) {
     // 1. Create User
@@ -43,7 +43,7 @@ export async function syncFirebaseUserToDb(firebaseUser: {
       await db.update(organizations)
         .set({ subscriptionPlan: firebaseUser.subscriptionPlan.toLowerCase() })
         .where(eq(organizations.id, newOrg.id))
-        .run();
+        ;
     }
   }
 

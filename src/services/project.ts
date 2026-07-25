@@ -31,7 +31,7 @@ export const getOrganizationProjects = cache(async (organizationId: string) => {
   const result = await db.select()
     .from(projects)
     .where(eq(projects.organizationId, organizationId))
-    .all();
+    ;
 
   setCached(cacheKey, result);
   return result;
@@ -45,7 +45,7 @@ export const getProjectById = cache(async (id: string, organizationId: string) =
   const result = await db.select()
     .from(projects)
     .where(and(eq(projects.id, id), eq(projects.organizationId, organizationId)))
-    .get();
+    .then(res => res ? res[0] : undefined);
 
   setCached(cacheKey, result);
   return result;

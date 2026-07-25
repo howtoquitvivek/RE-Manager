@@ -63,7 +63,7 @@ export async function getBuilderDashboardData(organizationId: string) {
     const { projects: projectsTable, construction: constructionTable, towers: towersTable } = await import("@/lib/db/schema");
     const { eq, desc } = await import("drizzle-orm");
 
-    const orgProjects = await db.select().from(projectsTable).where(eq(projectsTable.organizationId, organizationId)).all();
+    const orgProjects = await db.select().from(projectsTable).where(eq(projectsTable.organizationId, organizationId));
     
     const projectsWithConstruction = await Promise.all(
       orgProjects.map(async (project) => {
@@ -72,9 +72,9 @@ export async function getBuilderDashboardData(organizationId: string) {
           .where(eq(constructionTable.projectId, project.id))
           .orderBy(desc(constructionTable.createdAt))
           .limit(1)
-          .get();
+          .then(res => res ? res[0] : undefined);
 
-        const projectTowers = await db.select().from(towersTable).where(eq(towersTable.projectId, project.id)).all();
+        const projectTowers = await db.select().from(towersTable).where(eq(towersTable.projectId, project.id));
         
         return {
           id: project.id,

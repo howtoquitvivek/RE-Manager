@@ -24,7 +24,6 @@
     "@types/pdf-parse": "^1.1.5",
     "@vercel/blob": "^2.6.1",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -52,7 +51,6 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^7.6.11",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.17.1",
     "@types/react": "^19.0.0",

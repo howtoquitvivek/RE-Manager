@@ -8,13 +8,9 @@ const isTurso = process.env.DATABASE_URL?.startsWith("libsql://") || !!process.e
 export default defineConfig({
   schema: "./src/lib/db/schema.ts",
   out: "./drizzle",
-  dialect: isTurso ? "turso" : "sqlite",
-  dbCredentials: isTurso 
-    ? {
-        url: process.env.DATABASE_URL!,
-        authToken: process.env.DATABASE_AUTH_TOKEN,
-      }
-    : {
-        url: process.env.DATABASE_URL || "file:sqlite.db",
-      },
+  dialect: "turso",
+  dbCredentials: {
+    url: process.env.TURSO_DATABASE_URL || "file:./sqlite.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  },
 });

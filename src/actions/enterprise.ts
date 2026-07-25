@@ -8,12 +8,12 @@ import { revalidatePath } from "next/cache";
 // --- REGIONS ---
 export async function getRegionsAction(organizationId: string) {
   try {
-    const list = await db.select().from(regions).where(eq(regions.organizationId, organizationId)).all();
+    const list = await db.select().from(regions).where(eq(regions.organizationId, organizationId));
     
     const enrichedRegions = await Promise.all(
       list.map(async (r) => {
         // Count sites/projects in this organization (representing sites in this region for simplicity)
-        const orgProperties = await db.select().from(properties).where(eq(properties.organizationId, organizationId)).all();
+        const orgProperties = await db.select().from(properties).where(eq(properties.organizationId, organizationId));
         
         return {
           id: r.id,
@@ -64,7 +64,7 @@ export async function getCommercialUnitsAction(organizationId: string) {
           eq(properties.propertyType, "commercial")
         )
       )
-      .all();
+      ;
 
     const formattedCommercial = list.map(p => ({
       id: p.id,
@@ -118,7 +118,7 @@ export async function getLuxuryPortfolioAction(organizationId: string) {
           eq(properties.propertyType, "luxury")
         )
       )
-      .all();
+      ;
 
     const formattedLuxury = list.map(p => ({
       id: p.id,
@@ -166,11 +166,11 @@ export async function getAuditLogsAction(organizationId: string) {
       .from(auditLogs)
       .where(eq(auditLogs.organizationId, organizationId))
       .orderBy(desc(auditLogs.createdAt))
-      .all();
+      ;
 
     const enrichedLogs = await Promise.all(
       list.map(async (l) => {
-        const user = await db.select().from(users).where(eq(users.id, l.userId)).limit(1).get();
+        const user = await db.select().from(users).where(eq(users.id, l.userId)).limit(1).then(res => res ? res[0] : undefined);
         return {
           id: l.id,
           action: l.action,

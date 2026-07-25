@@ -52,11 +52,11 @@ export async function getTeamMembersAction(organizationId: string) {
     const list = await db.select()
       .from(memberships)
       .where(eq(memberships.organizationId, organizationId))
-      .all();
+      ;
 
     const enrichedMembers = await Promise.all(
       list.map(async (m) => {
-        const user = await db.select().from(users).where(eq(users.id, m.userId)).limit(1).get();
+        const user = await db.select().from(users).where(eq(users.id, m.userId)).limit(1).then(res => res ? res[0] : undefined);
         return {
           id: m.id,
           name: user ? user.name || "Unnamed Member" : "Unknown User",
@@ -83,7 +83,7 @@ export async function createTeamMemberAction(
 ) {
   try {
     // Check if user exists in DB
-    let user = await db.select().from(users).where(eq(users.email, data.email)).limit(1).get();
+    let user = await db.select().from(users).where(eq(users.email, data.email)).limit(1).then(res => res ? res[0] : undefined);
     
     if (!user) {
       // Create user record
@@ -106,7 +106,7 @@ export async function createTeamMemberAction(
         )
       )
       .limit(1)
-      .get();
+      .then(res => res ? res[0] : undefined);
 
     if (existingMember) {
       return { error: "User is already a member of this organization" };

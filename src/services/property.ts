@@ -31,7 +31,7 @@ export const getProjectProperties = cache(async (projectId: string) => {
   const result = await db.select()
     .from(properties)
     .where(eq(properties.projectId, projectId))
-    .all();
+    ;
 
   setCached(cacheKey, result);
   return result;
@@ -48,7 +48,7 @@ export const getOrganizationProperties = cache(async (organizationId: string) =>
   .from(properties)
   .innerJoin(projects, eq(properties.projectId, projects.id))
   .where(eq(projects.organizationId, organizationId))
-  .all();
+  ;
 
   setCached(cacheKey, result);
   return result;
@@ -62,7 +62,7 @@ export const getPropertyById = cache(async (id: string) => {
   const result = await db.select()
     .from(properties)
     .where(eq(properties.id, id))
-    .get();
+    .then(res => res ? res[0] : undefined);
 
   setCached(cacheKey, result);
   return result;

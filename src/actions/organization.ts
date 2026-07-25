@@ -29,7 +29,7 @@ export async function purchaseNichePlanAction(workspaceType: WorkspaceType, plan
     .from(organizations)
     .innerJoin(memberships, eq(organizations.id, memberships.organizationId))
     .where(and(eq(organizations.workspaceType, workspaceType), eq(memberships.userId, session.userId)))
-    .get();
+    .then(res => res ? res[0] : undefined);
 
     if (existing) {
       return { success: true, redirectUrl: `/dashboard/${existing.slug}` };
@@ -46,7 +46,7 @@ export async function purchaseNichePlanAction(workspaceType: WorkspaceType, plan
     await db.update(organizations)
       .set({ subscriptionPlan: planName.toLowerCase() })
       .where(eq(organizations.id, newOrg.id))
-      .run();
+      ;
 
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/${newOrg.slug}`);
@@ -70,7 +70,7 @@ export async function upgradeToPremiumAction(currentOrgSlug: string) {
       .from(organizations)
       .innerJoin(memberships, eq(organizations.id, memberships.organizationId))
       .where(and(eq(organizations.slug, currentOrgSlug), eq(memberships.userId, session.userId)))
-      .get();
+      .then(res => res ? res[0] : undefined);
 
     if (!currentOrg) {
       return { error: "Workspace organization not found" };
@@ -82,7 +82,7 @@ export async function upgradeToPremiumAction(currentOrgSlug: string) {
     await db.update(organizations)
       .set({ subscriptionPlan: "premium" })
       .where(eq(organizations.id, currentOrgId))
-      .run();
+      ;
 
     // 2. Automatically create the other organizations if they don't exist yet
     const existingOrgs = await db.select({
@@ -91,7 +91,7 @@ export async function upgradeToPremiumAction(currentOrgSlug: string) {
     .from(organizations)
     .innerJoin(memberships, eq(organizations.id, memberships.organizationId))
     .where(eq(memberships.userId, session.userId))
-    .all();
+    ;
 
     const existingTypes = existingOrgs.map(o => o.workspaceType);
 
@@ -109,7 +109,7 @@ export async function upgradeToPremiumAction(currentOrgSlug: string) {
           await db.update(organizations)
             .set({ subscriptionPlan: "premium" })
             .where(eq(organizations.id, newOrg.id))
-            .run();
+            ;
         }
       } else {
         // Update existing organizations to premium too so all of them are marked premium
@@ -117,12 +117,12 @@ export async function upgradeToPremiumAction(currentOrgSlug: string) {
           .from(organizations)
           .innerJoin(memberships, eq(organizations.id, memberships.organizationId))
           .where(and(eq(organizations.workspaceType, niche.type), eq(memberships.userId, session.userId)))
-          .get();
+          .then(res => res ? res[0] : undefined);
         if (org) {
           await db.update(organizations)
             .set({ subscriptionPlan: "premium" })
             .where(eq(organizations.id, org.organizations.id))
-            .run();
+            ;
         }
       }
     }
